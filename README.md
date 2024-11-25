@@ -1,2 +1,2 @@
-# NUX
-NWChemEx User Experience (NUX): Tools, functions, etc. to facilitate user workflows
+# NUX (NWChemEx User Experience)
+Modules, tools, functions, etc. to facilitate a smoother user experience.
