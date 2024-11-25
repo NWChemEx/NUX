@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
+#include "nux_modules.hpp"
 #include <nux/nux.hpp>
 
 namespace nux {
 
-void load_modules(pluginplay::ModuleManager &mm) {}
+void load_modules(pluginplay::ModuleManager &mm) {
+  mm.add_module<BOApproximation>("Born-Oppenheimer Approximation");
+}
 
 } // namespace nux

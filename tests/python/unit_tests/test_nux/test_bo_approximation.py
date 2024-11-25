@@ -14,14 +14,21 @@
 
 from pluginplay import ModuleManager
 import nux
+import simde
+import chemist
 import unittest
 
 
-class TestLoadModules(unittest.TestCase):
+class TestBOApproximation(unittest.TestCase):
 
-    def test_load_modules(self):
-        self.assertGreater(self.mm.size(), 0)
+    def test_empty_chemical_system(self):
+        sys = chemist.ChemicalSystem()
+        # Hamiltonian isn't exposed to Python yet...
+        #H = self.mm.run_as(self.pt, 'Born-Oppenheimer Approximation', sys)
+        #H_corr = chemist.qm_operator.Hamiltonian()
+        #self.assertEqual(H, H_corr)
 
     def setUp(self):
         self.mm = ModuleManager()
         nux.load_modules(self.mm)
+        self.pt = simde.HamiltonianFromChemicalSystem()

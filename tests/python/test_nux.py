@@ -12,16 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pluginplay import ModuleManager
-import nux
-import unittest
+import chemist
 
 
-class TestLoadModules(unittest.TestCase):
+def h_nucleus(x, y, z):
+    return chemist.Nucleus('H', 1, 1836.15, x, y, z)
 
-    def test_load_modules(self):
-        self.assertGreater(self.mm.size(), 0)
 
-    def setUp(self):
-        self.mm = ModuleManager()
-        nux.load_modules(self.mm)
+def h2_nuclei():
+    h0 = h_nucleus(0.0, 0.0, 0.0)
+    h1 = h_nucleus(0.0, 0.0, 1.3984)
+
+    return chemist.Nuclei(h0, h1)

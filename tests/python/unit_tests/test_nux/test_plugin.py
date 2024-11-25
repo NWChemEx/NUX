@@ -19,6 +19,9 @@ import unittest
 
 class TestLoadModules(unittest.TestCase):
 
+    def test_load_modules(self):
+        self.assertGreater(self.mm.size(), 0)
+
     def setUp(self):
         self.mm = ModuleManager()
         nux.load_modules(self.mm)
