@@ -14,5 +14,5 @@
   ~ limitations under the License.
 -->
 
-# NUX (NWChemEx User Experience)
-Modules, tools, functions, etc. to facilitate a smoother user experience.
+General instructions for building documentation found throughout the NWChemEx project are available at:
+https://github.com/NWChemEx/NWChemEx/blob/master/docs/README.md
