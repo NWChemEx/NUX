@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#include "../test_nux.hpp"
-#include <nux/nux.hpp>
+#pragma once
+#include <simde/simde.hpp>
 
-TEST_CASE("load_plugin") {
-  pluginplay::ModuleManager mm;
-  nux::load_modules(mm);
-  REQUIRE(mm.size() > 0);
+namespace nux {
+
+DECLARE_MODULE(BOApproximation);
+
 }
