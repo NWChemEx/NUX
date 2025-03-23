@@ -59,14 +59,15 @@ TEST_CASE("XYZToMolecule") {
     std::string filename = "h2.xyz";
 
     auto mol = mm.at("XYZ To Molecule").run_as<simde::MoleculeFromString>(filename);
-    auto mol2 = mm.at("XYZ To Molecule").run_as<simde::MoleculeFromString>(filename);
 
-    std::stringstream sys_mol, sys_test_mol;
+    std::stringstream sys_mol, sys_test_mol, sys_mol_nuc, sys_test_mol_nuc;
 
     sys_mol << mol;
     sys_test_mol << test_mol;
-    
+    sys_mol_nuc << mol.nuclei();
+    sys_test_mol_nuc << test_mol.nuclei();
 
+    REQUIRE(sys_mol_nuc.str() == sys_test_mol_nuc.str());
     REQUIRE(sys_mol.str() == sys_test_mol.str());
   }
 }
