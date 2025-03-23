@@ -66,6 +66,8 @@ namespace nux {
       mol.push_back(atm);
     }
 
+    xyz_file.close();
+    
     auto rv = results();
     return simde::MoleculeFromString::wrap_results(rv, mol);
   }

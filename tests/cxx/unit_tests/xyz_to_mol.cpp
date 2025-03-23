@@ -15,6 +15,7 @@
  */
 
 #include "../test_nux.hpp"
+#include "catch2/catch_message.hpp"
 #include "catch2/catch_test_macros.hpp"
 #include "module_manager/module_manager_class.hpp"
 #include <chemcache/chemcache_mm.hpp>
@@ -57,8 +58,9 @@ TEST_CASE("XYZToMolecule") {
     std::string filename = "h2.xyz";
 
     auto mol = mm.at("XYZ To Molecule").run_as<simde::MoleculeFromString>(filename);
-    
-    std::cout << "TEST RAN!\n";
+    auto mol2 = mm.at("XYZ To Molecule").run_as<simde::MoleculeFromString>(filename);
+
+    REQUIRE(mol == mol2);
     REQUIRE(mol == test_mol);
   }
 }
