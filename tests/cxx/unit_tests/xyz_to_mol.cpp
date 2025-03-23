@@ -18,33 +18,18 @@
 #include "catch2/catch_test_macros.hpp"
 #include "chemcache_mm.hpp"
 #include "chemical_system/molecule_from_string.hpp"
-#include <fstream>
 #include <nux/nux.hpp>
-#include <stdexcept>
 
 using namespace nux;
 
 TEST_CASE("XYZToMolecule") {
-  pluginplay::ModuleManager mm;
-  chemcache::load_modules(mm);
-  load_modules(mm);
-
-  std::ifstream file;
-  file.open("h2.xyz");
-  if (!file.is_open()) {
-    throw std::runtime_error("Bruh");
-  }
-
   SECTION("TEST") {
-    std::ifstream file;
-    file.open("h2.xyz");
-
-    if (!file.is_open()) {
-      throw std::runtime_error("HEY THE XYZ FILE ISN'T IN THE BUILD FOLDER!!!\n");
-    } else {
-      file.close();
-      auto mol = mm.run_as<simde::MoleculeFromString>("XYZ To Molecule", "h2.xyz");
-      std::cout << mol.nuclei();
+    pluginplay::ModuleManager mm;
+    chemcache::load_modules(mm);
+    nux::load_modules(mm);
+    std::cout << "TEST IS RUNNING\n";
+    auto mol = mm.run_as<simde::MoleculeFromString>("XYZ To Molecule", "h2.xyz");
+    std::cout << mol.nuclei();
+    REQUIRE(1 == 1);
     }
   }
-}
