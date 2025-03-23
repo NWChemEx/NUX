@@ -18,6 +18,7 @@
 #include "catch2/catch_test_macros.hpp"
 #include "module_manager/module_manager_class.hpp"
 #include <chemcache/chemcache_mm.hpp>
+#include <fstream>
 #include <nux/nux.hpp>
 
 TEST_CASE("XYZToMolecule") {
@@ -44,11 +45,20 @@ TEST_CASE("XYZToMolecule") {
     test_mol.push_back(atom);
     test_mol.push_back(atom2);
 
+    std::ofstream xyz_file;
+    xyz_file.open("h2.xyz");
+
+    xyz_file << "2\n";
+    xyz_file << "This is a comment!\n";
+    xyz_file << "H 0 0 0\n";
+    xyz_file << "H 0 0 1\n";
+    xyz_file.close();
+    
     std::string filename = "h2.xyz";
 
     auto mol = mm.at("XYZ To Molecule").run_as<simde::MoleculeFromString>(filename);
     
     std::cout << "TEST RAN!\n";
-    REQUIRE(mol.nuclei() == test_mol.nuclei());
+    REQUIRE(mol == test_mol);
   }
 }
