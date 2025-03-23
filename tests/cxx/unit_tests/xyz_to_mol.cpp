@@ -21,6 +21,7 @@
 #include <chemcache/chemcache_mm.hpp>
 #include <fstream>
 #include <nux/nux.hpp>
+#include <sstream>
 
 TEST_CASE("XYZToMolecule") {
 
@@ -60,7 +61,12 @@ TEST_CASE("XYZToMolecule") {
     auto mol = mm.at("XYZ To Molecule").run_as<simde::MoleculeFromString>(filename);
     auto mol2 = mm.at("XYZ To Molecule").run_as<simde::MoleculeFromString>(filename);
 
-    REQUIRE(mol == mol2);
-    REQUIRE(mol == test_mol);
+    std::stringstream sys_mol, sys_test_mol;
+
+    sys_mol << mol;
+    sys_test_mol << test_mol;
+    
+
+    REQUIRE(sys_mol.str() == sys_test_mol.str());
   }
 }
