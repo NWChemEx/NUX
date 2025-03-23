@@ -14,78 +14,60 @@
  * limitations under the License.
  */
 
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <vector>
-#include "chemcache/chemcache.hpp"
 #include "chemical_system/Z_from_symbol.hpp"
 #include "chemical_system/atom.hpp"
 #include "chemical_system/molecule_from_string.hpp"
 #include "module/macros.hpp"
-#include "module_manager/module_manager_class.hpp"
 #include "molecule/molecule_class.hpp"
 #include "nux_modules.hpp"
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
 
 namespace nux {
 
-MODULE_CTOR(XYZToMolecule) {
-  satisfies_property_type<simde::MoleculeFromString>();
-  add_submodule<simde::ZFromSymbol>("Z");
-  add_submodule<simde::AtomFromZ>("Atom");
-}
+  MODULE_CTOR(XYZToMolecule) {
+    satisfies_property_type<simde::MoleculeFromString>();
+    add_submodule<simde::ZFromSymbol>("Z");
+    add_submodule<simde::AtomFromZ>("A");
+  }
 
-MODULE_RUN(XYZToMolecule){
-  std::cout << "GETTING FILENAME\n";
-  const auto& [filename] = simde::MoleculeFromString::unwrap_inputs(inputs);
+  MODULE_RUN(XYZToMolecule) {
+    const auto& [filename] = simde::MoleculeFromString::unwrap_inputs(inputs);
 
-  std::cout << "OPENING FILE\n";
-  std::ifstream xyz_file(filename);
+    auto& z_from_sym = submods.at("Z");
+    auto& atom_from_z = submods.at("A");
 
-  chemist::Molecule mol;
-  
-  std::string line;
-  
-  auto& z_from_symbol = submods.at("Z");
-  auto& z_to_atom = submods.at("Atom");
+    chemist::Molecule mol;
 
+    std::ifstream xyz_file(filename);
+    std::string line;
 
-  std::cout << "ASSESSING IF FILE IS OPEN\n";
-  if (!xyz_file.is_open()){
-    std::cerr << "Error opening file: " << filename;
-  } else {
-    std::cout << "GOING TO LINE 3\n";
-    xyz_file.seekg(2);
+    std::getline(xyz_file, line);
+    std::getline(xyz_file, line);
 
-
-    std::cout << "SETTING ATOMS\n";
     while (std::getline(xyz_file, line)) {
+      std::istringstream iss(line);
       std::vector<std::string> tokens;
       std::string token;
-      std::istringstream iss(line);
-
       while (std::getline(iss, token, ' ')) {
         if (token.size()) { tokens.emplace_back(token); }
       }
-
-      auto Z = z_from_symbol.run_as<simde::ZFromSymbol>(tokens.at(0));
+      auto Z = z_from_sym.template run_as<simde::ZFromSymbol>(tokens.at(0));
       auto x = std::stod(tokens.at(1));
       auto y = std::stod(tokens.at(2));
       auto z = std::stod(tokens.at(3));
 
-      auto atom = z_to_atom.run_as<simde::AtomFromZ>(Z);
-      atom.x() = x;
-      atom.y() = y;
-      atom.z() = z;
-
-      mol.push_back(atom);
+      auto atm = atom_from_z.template run_as<simde::AtomFromZ>(Z);
+      atm.x()  = x;
+      atm.y()  = y;
+      atm.z()  = z;
+      mol.push_back(atm);
     }
-  std::cout << "PROCESS COMPLETED\n";
+
+    auto rv = results();
+    return simde::MoleculeFromString::wrap_results(rv, mol);
   }
-  auto rv = results();
-  
-  return simde::MoleculeFromString::wrap_results(rv, mol);
-}
 
 } // namespace nux

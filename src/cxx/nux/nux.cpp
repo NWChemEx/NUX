@@ -24,9 +24,4 @@ void load_modules(pluginplay::ModuleManager &mm) {
   mm.add_module<XYZToMolecule>("XYZ To Molecule");
 }
 
-inline void set_defaults(pluginplay::ModuleManager& mm) {
-    mm.change_submod("XYZ To Molecule", "Z", "Z From Symbol");
-    mm.change_submod("XYZ To Molecule", "Atom", "Atom From Z");
-}
-
 } // namespace nux
