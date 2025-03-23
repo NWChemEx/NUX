@@ -15,10 +15,12 @@
  */
 
 #pragma once
+#include "module/macros.hpp"
 #include <simde/simde.hpp>
 
 namespace nux {
 
 DECLARE_MODULE(BOApproximation);
+DECLARE_MODULE(XYZToMolecule);
 
 }

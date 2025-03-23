@@ -1,54 +1,75 @@
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
+#include "chemcache/chemcache.hpp"
+#include "chemical_system/Z_from_symbol.hpp"
+#include "chemical_system/atom.hpp"
+#include "chemical_system/molecule_from_string.hpp"
+#include "module/macros.hpp"
+#include "module_manager/module_manager_class.hpp"
+#include "molecule/molecule_class.hpp"
+#include "nux_modules.hpp"
 
-bool is_single_number(const std::string& line) {
-  return line.find_first_not_of("0123456789") == std::string::npos;
+namespace nux {
+
+MODULE_CTOR(XYZToMolecule) {
+  satisfies_property_type<simde::MoleculeFromString>();
+  add_submodule<simde::ZFromSymbol>("Z");
+  add_submodule<simde::AtomFromZ>("Atom");
 }
 
-int main() {
-  std::ifstream inputFile;
-  inputFile.open("h2.xyz");
-  if (!inputFile.is_open()) {
-    std::cerr << "Error opening file!" << std::endl;
-    return 1;
-  }
+MODULE_RUN(XYZToMolecule){
+  std::cout << "GETTING FILENAME\n";
+  const auto& [filename] = simde::MoleculeFromString::unwrap_inputs(inputs);
 
-  std::vector<int> coord_line_numbers;
+  std::cout << "OPENING FILE\n";
+  std::ifstream xyz_file(filename);
+
+  chemist::Molecule mol;
+  
   std::string line;
-  int line_number = 0;
+  
+  auto& z_from_symbol = submods.at("Z");
+  auto& z_to_atom = submods.at("Atom");
 
-  while (std::getline(inputFile, line)) {
-    line_number++;
 
-    if (is_single_number(line)) {
-      int num_atoms = std::stoi(line);
-      std::getline(inputFile, line);
-      line_number++;
+  std::cout << "ASSESSING IF FILE IS OPEN\n";
+  if (!xyz_file.is_open()){
+    std::cerr << "Error opening file: " << filename;
+  } else {
+    std::cout << "GOING TO LINE 3\n";
+    xyz_file.seekg(2);
 
-      coord_line_numbers.push_back(line_number + 1);
 
-      for (int i = 0; i < num_atoms; i++) {
-        std::getline(inputFile, line);
-        line_number++;
+    std::cout << "SETTING ATOMS\n";
+    while (std::getline(xyz_file, line)) {
+      std::vector<std::string> tokens;
+      std::string token;
+      std::istringstream iss(line);
+
+      while (std::getline(iss, token, ' ')) {
+        if (token.size()) { tokens.emplace_back(token); }
       }
-    }
-  }
-  inputFile.clear();
-  inputFile.seekg(0);
 
-  std::string word;
-  while (inputFile >> word) {
-    if (word == "comment!"){
-      std::cout << word << std::endl;
-    }
-  }
-  inputFile.close();
-  // std::cout << "XYZ coordinate blocks start at line numbers:\n";
-  // for (int num : coord_line_numbers) {
-  //   std::cout << num << std::endl;
-  // }
+      auto Z = z_from_symbol.run_as<simde::ZFromSymbol>(tokens.at(0));
+      auto x = std::stod(tokens.at(1));
+      auto y = std::stod(tokens.at(2));
+      auto z = std::stod(tokens.at(3));
 
-  return 0;
+      auto atom = z_to_atom.run_as<simde::AtomFromZ>(Z);
+      atom.x() = x;
+      atom.y() = y;
+      atom.z() = z;
+
+      mol.push_back(atom);
+    }
+  std::cout << "PROCESS COMPLETED\n";
+  }
+  auto rv = results();
+  
+  return simde::MoleculeFromString::wrap_results(rv, mol);
 }
+
+} // namespace nux
