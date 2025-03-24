@@ -15,7 +15,6 @@
  */
 
 #pragma once
-#include "module/macros.hpp"
 #include <simde/simde.hpp>
 
 namespace nux {

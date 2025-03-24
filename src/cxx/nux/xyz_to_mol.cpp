@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 
-#include "chemical_system/Z_from_symbol.hpp"
-#include "chemical_system/atom.hpp"
-#include "chemical_system/molecule_from_string.hpp"
-#include "module/macros.hpp"
-#include "molecule/molecule_class.hpp"
 #include "nux_modules.hpp"
 #include <fstream>
 #include <sstream>
@@ -29,15 +24,15 @@ namespace nux {
 
   MODULE_CTOR(XYZToMolecule) {
     satisfies_property_type<simde::MoleculeFromString>();
-    add_submodule<simde::ZFromSymbol>("Z");
-    add_submodule<simde::AtomFromZ>("A");
+    add_submodule<simde::ZFromSymbol>("Z from symbol");
+    add_submodule<simde::AtomFromZ>("Atom from z");
   }
 
   MODULE_RUN(XYZToMolecule) {
     const auto& [filename] = simde::MoleculeFromString::unwrap_inputs(inputs);
 
-    auto& z_from_sym = submods.at("Z");
-    auto& atom_from_z = submods.at("A");
+    const auto& z_from_sym = submods.at("Z from symbol");
+    const auto& atom_from_z = submods.at("Atom from z");
 
     chemist::Molecule mol;
 
@@ -54,12 +49,12 @@ namespace nux {
       while (std::getline(iss, token, ' ')) {
         if (token.size()) { tokens.emplace_back(token); }
       }
-      auto Z = z_from_sym.template run_as<simde::ZFromSymbol>(tokens.at(0));
+      auto Z = z_from_sym.run_as<simde::ZFromSymbol>(tokens.at(0));
       auto x = std::stod(tokens.at(1));
       auto y = std::stod(tokens.at(2));
       auto z = std::stod(tokens.at(3));
 
-      auto atm = atom_from_z.template run_as<simde::AtomFromZ>(Z);
+      auto atm = atom_from_z.run_as<simde::AtomFromZ>(Z);
       atm.x()  = x;
       atm.y()  = y;
       atm.z()  = z;

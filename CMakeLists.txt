@@ -38,7 +38,7 @@ cmaize_option_list(
     INTEGRATION_TESTING OFF "Should we build the integration tests?"
 )
 
-set(DEPENDENCIES simde chemcache)
+set(DEPENDENCIES simde)
 
 foreach(dependency_i ${DEPENDENCIES})
     include(get_${dependency_i})

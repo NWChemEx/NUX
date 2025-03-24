@@ -15,13 +15,7 @@
  */
 
 #include "../test_nux.hpp"
-#include "catch2/catch_message.hpp"
-#include "catch2/catch_test_macros.hpp"
-#include "module_manager/module_manager_class.hpp"
-#include <chemcache/chemcache_mm.hpp>
-#include <fstream>
 #include <nux/nux.hpp>
-#include <sstream>
 
 TEST_CASE("XYZToMolecule") {
 
@@ -34,7 +28,6 @@ TEST_CASE("XYZToMolecule") {
 
   SECTION("Another One") {
     pluginplay::ModuleManager mm;
-    chemcache::load_modules(mm);
     nux::load_modules(mm);
 
     mm.change_submod("XYZ To Molecule", "Z", "Z from Symbol");
@@ -60,14 +53,8 @@ TEST_CASE("XYZToMolecule") {
 
     auto mol = mm.at("XYZ To Molecule").run_as<simde::MoleculeFromString>(filename);
 
-    std::stringstream sys_mol, sys_test_mol, sys_mol_nuc, sys_test_mol_nuc;
+    remove("h2.xyz");
 
-    sys_mol << mol;
-    sys_test_mol << test_mol;
-    sys_mol_nuc << mol.nuclei();
-    sys_test_mol_nuc << test_mol.nuclei();
-
-    REQUIRE(sys_mol_nuc.str() == sys_test_mol_nuc.str());
-    REQUIRE(sys_mol.str() == sys_test_mol.str());
+    REQUIRE(mol == test_mol);
   }
 }
