@@ -31,8 +31,8 @@ namespace nux {
   MODULE_RUN(XYZToMolecule) {
     const auto& [filename] = simde::MoleculeFromString::unwrap_inputs(inputs);
 
-    const auto& z_from_sym = submods.at("Z from symbol");
-    const auto& atom_from_z = submods.at("Atom from z");
+    auto& z_from_sym = submods.at("Z from symbol");
+    auto& atom_from_z = submods.at("Atom from z");
 
     chemist::Molecule mol;
 

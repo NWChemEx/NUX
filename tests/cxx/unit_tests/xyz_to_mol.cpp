@@ -15,7 +15,18 @@
  */
 
 #include "../test_nux.hpp"
+#include "chemical_system/Z_from_symbol.hpp"
+#include "module/macros.hpp"
 #include <nux/nux.hpp>
+
+DECLARE_MODULE(ZFromSymbol);
+inline MODULE_CTOR(ZFromSymbol) {
+  satisfies_property_type<>();
+  
+}
+inline MODULE_RUN(ZFromSymbol){
+  
+}
 
 TEST_CASE("XYZToMolecule") {
 
