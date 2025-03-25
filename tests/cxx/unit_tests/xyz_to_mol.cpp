@@ -41,8 +41,9 @@ TEST_CASE("XYZToMolecule") {
   }
 
   SECTION("Full XYZ To Molecule run") {
-    simde::type::atom atom{"H", 1, 1837.42602186938, 0, 0, 0};
-    simde::type::atom atom2{"H", 1, 1837.42602186938, 0, 0, 1};
+    double h_mass = 1837.4260218693814;
+    simde::type::atom atom{"H", 1, h_mass, 0, 0, 0};
+    simde::type::atom atom2{"H", 1, h_mass, 0, 0, 1};
 
     simde::type::molecule test_mol{atom, atom2};
 
@@ -63,12 +64,10 @@ TEST_CASE("XYZToMolecule") {
     remove("h2.xyz");
     std::ifstream del_file("h2.xyz");
 
-    REQUIRE(mol.size() == test_mol.size());
-    REQUIRE(mol.charge() == test_mol.charge());
-    REQUIRE(mol.multiplicity() == test_mol.multiplicity());
-    REQUIRE(mol[0] == test_mol[0]);
-    REQUIRE(mol[1] == test_mol[1]);
+    std::cout << typeid(mol[0]).name() << std::endl;
+    std::cout << typeid(test_mol[0]).name() << std::endl;
+
+    REQUIRE(mol == test_mol);
     REQUIRE(del_file.good() == false);
-    
   }
 }
