@@ -41,12 +41,11 @@ TEST_CASE("XYZToMolecule") {
   }
 
   SECTION("Full XYZ To Molecule run") {
-    chemist::Molecule test_mol;
-    chemist::Atom atom("H", 1, 1837.42602186938, 0, 0, 0);
-    chemist::Atom atom2("H", 1, 1837.42602186938, 0, 0, 1);
+    simde::type::atom atom{"H", 1, 1837.42602186938, 0, 0, 0};
+    simde::type::atom atom2{"H", 1, 1837.42602186938, 0, 0, 1};
 
-    test_mol.push_back(atom);
-    test_mol.push_back(atom2);
+    simde::type::molecule test_mol{atom, atom2};
+
 
     std::ofstream xyz_file;
     xyz_file.open("h2.xyz");
@@ -64,7 +63,11 @@ TEST_CASE("XYZToMolecule") {
     remove("h2.xyz");
     std::ifstream del_file("h2.xyz");
 
-    REQUIRE(mol == test_mol);
+    REQUIRE(mol.size() == test_mol.size());
+    REQUIRE(mol.charge() == test_mol.charge());
+    REQUIRE(mol.multiplicity() == test_mol.multiplicity());
+    REQUIRE(mol[0] == test_mol[0]);
+    REQUIRE(mol[1] == test_mol[1]);
     REQUIRE(del_file.good() == false);
     
   }
