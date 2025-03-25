@@ -22,26 +22,24 @@
 
 namespace nux {
 
-  MODULE_CTOR(XYZToMolecule) {
+MODULE_CTOR(XYZToMolecule) {
     satisfies_property_type<simde::MoleculeFromString>();
     add_submodule<simde::ZFromSymbol>("Z from symbol");
     add_submodule<simde::AtomFromZ>("Atom from z");
-  }
+}
 
-  MODULE_RUN(XYZToMolecule) {
+MODULE_RUN(XYZToMolecule) {
     const auto& [filename] = simde::MoleculeFromString::unwrap_inputs(inputs);
 
-    auto& z_from_sym = submods.at("Z from symbol");
+    auto& z_from_sym  = submods.at("Z from symbol");
     auto& atom_from_z = submods.at("Atom from z");
 
     chemist::Molecule mol;
 
     std::ifstream xyz_file(filename);
 
-    if (!xyz_file) {
-      throw std::runtime_error("File not found: " + filename);
-    }
-    
+    if(!xyz_file) { throw std::runtime_error("File not found: " + filename); }
+
     std::string line;
 
     // Skips the 1st line of the file, associated with the number of
@@ -49,29 +47,29 @@ namespace nux {
     std::getline(xyz_file, line);
     std::getline(xyz_file, line);
 
-    while (std::getline(xyz_file, line)) {
-      std::istringstream iss(line);
-      std::vector<std::string> tokens;
-      std::string token;
-      while (std::getline(iss, token, ' ')) {
-        if (token.size()) { tokens.emplace_back(token); }
-      }
-      auto Z = z_from_sym.run_as<simde::ZFromSymbol>(tokens.at(0));
-      auto x = std::stod(tokens.at(1));
-      auto y = std::stod(tokens.at(2));
-      auto z = std::stod(tokens.at(3));
+    while(std::getline(xyz_file, line)) {
+        std::istringstream iss(line);
+        std::vector<std::string> tokens;
+        std::string token;
+        while(std::getline(iss, token, ' ')) {
+            if(token.size()) { tokens.emplace_back(token); }
+        }
+        auto Z = z_from_sym.run_as<simde::ZFromSymbol>(tokens.at(0));
+        auto x = std::stod(tokens.at(1));
+        auto y = std::stod(tokens.at(2));
+        auto z = std::stod(tokens.at(3));
 
-      auto atm = atom_from_z.run_as<simde::AtomFromZ>(Z);
-      atm.x()  = x;
-      atm.y()  = y;
-      atm.z()  = z;
-      mol.push_back(atm);
+        auto atm = atom_from_z.run_as<simde::AtomFromZ>(Z);
+        atm.x()  = x;
+        atm.y()  = y;
+        atm.z()  = z;
+        mol.push_back(atm);
     }
 
     xyz_file.close();
-    
+
     auto rv = results();
     return simde::MoleculeFromString::wrap_results(rv, mol);
-  }
+}
 
 } // namespace nux

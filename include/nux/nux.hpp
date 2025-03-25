@@ -21,6 +21,6 @@ namespace nux {
 /** @brief Loads the modules contained in the NUX module collection into the
  *         provided ModuleManager instance.
  */
-void load_modules(pluginplay::ModuleManager &mm);
+void load_modules(pluginplay::ModuleManager& mm);
 
 } // namespace nux

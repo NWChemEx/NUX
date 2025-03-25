@@ -22,50 +22,50 @@ TEST_CASE("XYZToMolecule") {
     nux::load_modules(mm);
 
     auto make_atoms = [=](auto&& Z) {
-      REQUIRE(Z == 1);
-      double h_mass = 1837.4260218693814;
-      return simde::type::atom{"H", 1, h_mass, 0.0, 0.0, 0.0};
+        REQUIRE(Z == 1);
+        double h_mass = 1837.4260218693814;
+        return simde::type::atom{"H", 1, h_mass, 0.0, 0.0, 0.0};
     };
 
     auto atom_mod = pluginplay::make_lambda<simde::AtomFromZ>(make_atoms);
 
-    auto z_mod = pluginplay::make_lambda<simde::ZFromSymbol>([=](auto&& symbol) {
-        return simde::type::atomic_number{1};
-    });
+    auto z_mod = pluginplay::make_lambda<simde::ZFromSymbol>(
+      [=](auto&& symbol) { return simde::type::atomic_number{1}; });
 
     auto& xyz_mod = mm.at("XYZ To Molecule");
     xyz_mod.change_submod("Z from symbol", z_mod);
     xyz_mod.change_submod("Atom from z", atom_mod);
 
-  SECTION("No XYZ file found") {
-    std::string file = "file.xyz";
-    REQUIRE_THROWS_AS(xyz_mod.run_as<simde::MoleculeFromString>(file), std::runtime_error);
-  }
+    SECTION("No XYZ file found") {
+        std::string file = "file.xyz";
+        REQUIRE_THROWS_AS(xyz_mod.run_as<simde::MoleculeFromString>(file),
+                          std::runtime_error);
+    }
 
-  SECTION("Full XYZ To Molecule run") {
-    auto atom0{make_atoms(1)};
-    auto atom1{make_atoms(1)};
-    atom1.z() = 1;
+    SECTION("Full XYZ To Molecule run") {
+        auto atom0{make_atoms(1)};
+        auto atom1{make_atoms(1)};
+        atom1.z() = 1;
 
-    simde::type::molecule test_mol{atom0, atom1};
+        simde::type::molecule test_mol{atom0, atom1};
 
-    std::ofstream xyz_file;
-    xyz_file.open("h2.xyz");
+        std::ofstream xyz_file;
+        xyz_file.open("h2.xyz");
 
-    xyz_file << "2\n";
-    xyz_file << "This is a comment!\n";
-    xyz_file << "H 0 0 0\n";
-    xyz_file << "H 0 0 1\n";
-    xyz_file.close();
-    
-    std::string filename = "h2.xyz";
+        xyz_file << "2\n";
+        xyz_file << "This is a comment!\n";
+        xyz_file << "H 0 0 0\n";
+        xyz_file << "H 0 0 1\n";
+        xyz_file.close();
 
-    auto mol = xyz_mod.run_as<simde::MoleculeFromString>(filename);
+        std::string filename = "h2.xyz";
 
-    remove("h2.xyz");
-    std::ifstream del_file("h2.xyz");
+        auto mol = xyz_mod.run_as<simde::MoleculeFromString>(filename);
 
-    REQUIRE(mol == test_mol);
-    REQUIRE(del_file.good() == false);
-  }
+        remove("h2.xyz");
+        std::ifstream del_file("h2.xyz");
+
+        REQUIRE(mol == test_mol);
+        REQUIRE(del_file.good() == false);
+    }
 }

@@ -18,10 +18,10 @@
 #include <catch2/catch_session.hpp>
 #include <nux/nux.hpp>
 
-int main(int argc, char *argv[]) {
-  auto rt = parallelzone::runtime::RuntimeView();
+int main(int argc, char* argv[]) {
+    auto rt = parallelzone::runtime::RuntimeView();
 
-  int res = Catch::Session().run(argc, argv);
+    int res = Catch::Session().run(argc, argv);
 
-  return res;
+    return res;
 }
