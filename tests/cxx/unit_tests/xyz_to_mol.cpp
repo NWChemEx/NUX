@@ -22,6 +22,7 @@ TEST_CASE("XYZToMolecule") {
     nux::load_modules(mm);
 
     auto make_atoms = [=](auto&& Z) {
+      REQUIRE(Z == 1);
       double h_mass = 1837.4260218693814;
       return simde::type::atom{"H", 1, h_mass, 0.0, 0.0, 0.0};
     };
@@ -63,9 +64,6 @@ TEST_CASE("XYZToMolecule") {
 
     remove("h2.xyz");
     std::ifstream del_file("h2.xyz");
-
-    std::cout << typeid(mol[0]).name() << std::endl;
-    std::cout << typeid(test_mol[0]).name() << std::endl;
 
     REQUIRE(mol == test_mol);
     REQUIRE(del_file.good() == false);

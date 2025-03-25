@@ -44,6 +44,8 @@ namespace nux {
     
     std::string line;
 
+    // Skips the 1st line of the file, associated with the number of
+    // atoms in the file, and the 2nd line, the comment line.
     std::getline(xyz_file, line);
     std::getline(xyz_file, line);
 
