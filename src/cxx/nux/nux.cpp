@@ -19,9 +19,9 @@
 
 namespace nux {
 
-void load_modules(pluginplay::ModuleManager &mm) {
-  mm.add_module<BOApproximation>("Born-Oppenheimer Approximation");
-  mm.add_module<XYZToMolecule>("XYZ To Molecule");
+void load_modules(pluginplay::ModuleManager& mm) {
+    mm.add_module<BOApproximation>("Born-Oppenheimer Approximation");
+    mm.add_module<XYZToMolecule>("XYZ To Molecule");
 }
 
 } // namespace nux

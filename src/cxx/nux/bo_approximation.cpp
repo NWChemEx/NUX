@@ -48,42 +48,43 @@ Terms that are zero will not appear in the Hamiltonian.
 )";
 
 MODULE_CTOR(BOApproximation) {
-  satisfies_property_type<pt>();
-  description(desc);
+    satisfies_property_type<pt>();
+    description(desc);
 }
 
 MODULE_RUN(BOApproximation) {
-  const auto &[sys] = pt::unwrap_inputs(inputs);
+    const auto& [sys] = pt::unwrap_inputs(inputs);
 
-  // Step 0: Decompose system into pieces
-  const auto electrons = sys.molecule().electrons();
-  const auto nuclei = sys.molecule().nuclei().as_nuclei();
-  bool has_electrons = electrons.size();
-  bool has_nuclei = nuclei.size();
+    // Step 0: Decompose system into pieces
+    const auto electrons = sys.molecule().electrons();
+    const auto nuclei    = sys.molecule().nuclei().as_nuclei();
+    bool has_electrons   = electrons.size();
+    bool has_nuclei      = nuclei.size();
 
-  using simde::type::T_e_type;
-  using simde::type::V_ee_type;
-  using simde::type::V_en_type;
-  using simde::type::V_nn_type;
+    using simde::type::T_e_type;
+    using simde::type::V_ee_type;
+    using simde::type::V_en_type;
+    using simde::type::V_nn_type;
 
-  // Step 1: Create non-zero terms and add them to the Hamiltonian
-  // N.b. the logic is a bit convoluted to conform to "usual" ordering (see
-  // module description)
+    // Step 1: Create non-zero terms and add them to the Hamiltonian
+    // N.b. the logic is a bit convoluted to conform to "usual" ordering (see
+    // module description)
 
-  hamiltonian H;
-  if (has_electrons) {
-    H.emplace_back(1.0, std::make_unique<T_e_type>(electrons));
-    if (has_nuclei)
-      H.emplace_back(1.0, std::make_unique<V_en_type>(electrons, nuclei));
-    if (electrons.size() > 1)
-      H.emplace_back(1.0, std::make_unique<V_ee_type>(electrons, electrons));
-  }
-  if (nuclei.size() > 1) {
-    H.emplace_back(1.0, std::make_unique<V_nn_type>(nuclei, nuclei));
-  }
+    hamiltonian H;
+    if(has_electrons) {
+        H.emplace_back(1.0, std::make_unique<T_e_type>(electrons));
+        if(has_nuclei)
+            H.emplace_back(1.0, std::make_unique<V_en_type>(electrons, nuclei));
+        if(electrons.size() > 1)
+            H.emplace_back(1.0,
+                           std::make_unique<V_ee_type>(electrons, electrons));
+    }
+    if(nuclei.size() > 1) {
+        H.emplace_back(1.0, std::make_unique<V_nn_type>(nuclei, nuclei));
+    }
 
-  auto rv = results();
-  return pt::wrap_results(rv, H);
+    auto rv = results();
+    return pt::wrap_results(rv, H);
 }
 
 } // namespace nux
