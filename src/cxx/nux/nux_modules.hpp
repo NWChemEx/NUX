@@ -20,5 +20,6 @@
 namespace nux {
 
 DECLARE_MODULE(BOApproximation);
+DECLARE_MODULE(XYZToMolecule);
 
 }
