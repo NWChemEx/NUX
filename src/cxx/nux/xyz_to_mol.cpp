@@ -39,9 +39,7 @@ namespace nux {
     std::ifstream xyz_file(filename);
 
     if (!xyz_file) {
-      std::stringstream ss;
-      ss << "File not found: " << filename;
-      throw std::runtime_error(ss.str());
+      throw std::runtime_error("File not found: " + filename);
     }
     
     std::string line;

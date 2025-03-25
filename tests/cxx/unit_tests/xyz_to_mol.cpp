@@ -21,11 +21,12 @@ TEST_CASE("XYZToMolecule") {
     pluginplay::ModuleManager mm;
     nux::load_modules(mm);
 
-    auto atom_mod = pluginplay::make_lambda<simde::AtomFromZ>([=](auto&& Z) {
-        double h_mass = 1837.4260218693814;
-        return simde::type::atom{"H", 1, h_mass, 0.0, 0.0, 0.0};
-    });
-    
+    auto make_atoms = [=](auto&& Z) {
+      double h_mass = 1837.4260218693814;
+      return simde::type::atom{"H", 1, h_mass, 0.0, 0.0, 0.0};
+    };
+
+    auto atom_mod = pluginplay::make_lambda<simde::AtomFromZ>(make_atoms);
 
     auto z_mod = pluginplay::make_lambda<simde::ZFromSymbol>([=](auto&& symbol) {
         return simde::type::atomic_number{1};
@@ -41,12 +42,11 @@ TEST_CASE("XYZToMolecule") {
   }
 
   SECTION("Full XYZ To Molecule run") {
-    double h_mass = 1837.4260218693814;
-    simde::type::atom atom{"H", 1, h_mass, 0, 0, 0};
-    simde::type::atom atom2{"H", 1, h_mass, 0, 0, 1};
+    auto atom0{make_atoms(1)};
+    auto atom1{make_atoms(1)};
+    atom1.z() = 1;
 
-    simde::type::molecule test_mol{atom, atom2};
-
+    simde::type::molecule test_mol{atom0, atom1};
 
     std::ofstream xyz_file;
     xyz_file.open("h2.xyz");
