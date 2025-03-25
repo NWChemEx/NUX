@@ -17,27 +17,6 @@
 #include "../test_nux.hpp"
 #include <nux/nux.hpp>
 
-DECLARE_MODULE(PseudoZFromSymbol);
-inline MODULE_CTOR(PseudoZFromSymbol) {
-  satisfies_property_type<simde::ZFromSymbol>();
-}
-inline MODULE_RUN(PseudoZFromSymbol){
-  simde::type::atomic_number Z = 1;
-  auto rv = results();
-  return simde::ZFromSymbol::wrap_results(rv, Z);
-}
-
-DECLARE_MODULE(PseudoAtomFromZ);
-inline MODULE_CTOR(PseudoAtomFromZ) {
-  satisfies_property_type<simde::AtomFromZ>();
-}
-inline MODULE_RUN(PseudoAtomFromZ) {
-  const auto& [Z] = simde::AtomFromZ::unwrap_inputs(inputs);
-  simde::type::atom atom{"H", Z, 1837.4260218693814, 0.0, 0.0, 0.0};
-  auto rv = results();
-  return simde::AtomFromZ::wrap_results(rv, atom);
-}
-
 TEST_CASE("XYZToMolecule") {
 
   SECTION("Is this working?") {
@@ -51,10 +30,21 @@ TEST_CASE("XYZToMolecule") {
     pluginplay::ModuleManager mm;
     nux::load_modules(mm);
 
-    mm.add_module<PseudoZFromSymbol>("Z from Symbol");
-    mm.add_module<PseudoAtomFromZ>("Atom from Z");
-    mm.change_submod("XYZ To Molecule", "Z from symbol", "Z from Symbol");
-    mm.change_submod("XYZ To Molecule", "Atom from z", "Atom from Z");
+    auto& xyz_mod = mm.at("XYZ To Molecule");
+
+    auto atom_mod = pluginplay::make_lambda<simde::AtomFromZ>([=](auto&& Z) {
+        double h_mass = 1837.4260218693814;
+        return simde::type::atom{"H", 1, h_mass, 0.0, 0.0, 0.0};
+    });
+    
+
+    auto z_mod = pluginplay::make_lambda<simde::ZFromSymbol>([=](auto&& symbol) {
+        return simde::type::atomic_number{1};
+    });
+    
+
+    xyz_mod.change_submod("Z from symbol", z_mod);
+    xyz_mod.change_submod("Atom from z", atom_mod);
 
     chemist::Molecule test_mol;
     chemist::Atom atom("H", 1, 1837.42602186938, 0, 0, 0);
