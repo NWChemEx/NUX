@@ -37,6 +37,13 @@ namespace nux {
     chemist::Molecule mol;
 
     std::ifstream xyz_file(filename);
+
+    if (!xyz_file) {
+      std::stringstream ss;
+      ss << "File not found: " << filename;
+      throw std::runtime_error(ss.str());
+    }
+    
     std::string line;
 
     std::getline(xyz_file, line);

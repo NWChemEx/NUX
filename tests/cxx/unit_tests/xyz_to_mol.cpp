@@ -18,19 +18,8 @@
 #include <nux/nux.hpp>
 
 TEST_CASE("XYZToMolecule") {
-
-  SECTION("Is this working?") {
-    pluginplay::ModuleManager mm_test;
-    nux::load_modules(mm_test);
-
-    REQUIRE(mm_test.size() > 0);
-  }
-
-  SECTION("Another One") {
     pluginplay::ModuleManager mm;
     nux::load_modules(mm);
-
-    auto& xyz_mod = mm.at("XYZ To Molecule");
 
     auto atom_mod = pluginplay::make_lambda<simde::AtomFromZ>([=](auto&& Z) {
         double h_mass = 1837.4260218693814;
@@ -41,11 +30,17 @@ TEST_CASE("XYZToMolecule") {
     auto z_mod = pluginplay::make_lambda<simde::ZFromSymbol>([=](auto&& symbol) {
         return simde::type::atomic_number{1};
     });
-    
 
+    auto& xyz_mod = mm.at("XYZ To Molecule");
     xyz_mod.change_submod("Z from symbol", z_mod);
     xyz_mod.change_submod("Atom from z", atom_mod);
 
+  SECTION("No XYZ file found") {
+    std::string file = "file.xyz";
+    REQUIRE_THROWS_AS(xyz_mod.run_as<simde::MoleculeFromString>(file), std::runtime_error);
+  }
+
+  SECTION("Full XYZ To Molecule run") {
     chemist::Molecule test_mol;
     chemist::Atom atom("H", 1, 1837.42602186938, 0, 0, 0);
     chemist::Atom atom2("H", 1, 1837.42602186938, 0, 0, 1);
@@ -64,10 +59,13 @@ TEST_CASE("XYZToMolecule") {
     
     std::string filename = "h2.xyz";
 
-    auto mol = mm.at("XYZ To Molecule").run_as<simde::MoleculeFromString>(filename);
+    auto mol = xyz_mod.run_as<simde::MoleculeFromString>(filename);
 
     remove("h2.xyz");
+    std::ifstream del_file("h2.xyz");
 
     REQUIRE(mol == test_mol);
+    REQUIRE(del_file.good() == false);
+    
   }
 }
