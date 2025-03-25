@@ -6,3 +6,4 @@ Modules API
    :maxdepth: 1
 
    Born-Oppenheimer_Approximation
+   XYZ_To_Molecule
