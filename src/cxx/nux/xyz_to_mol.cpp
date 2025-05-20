@@ -35,17 +35,11 @@ MODULE_RUN(XYZToMolecule) {
     std::string line;
     chemist::Molecule mol;
 
-    std::ifstream file(xyz_data);
     std::stringstream buffer;
-    if(file.is_open()) {
-        buffer << file.rdbuf();
-        file.close();
-    } else {
-        buffer << xyz_data;
-        if(buffer.str().empty()) {
-            throw std::runtime_error(
-              "File or XYZ data not valid, empty string");
-        }
+
+    buffer << xyz_data;
+    if(buffer.str().empty()) {
+        throw std::runtime_error("File or XYZ data not valid, empty string");
     }
 
     int i = 0;
@@ -93,4 +87,34 @@ MODULE_RUN(XYZToMolecule) {
     return simde::MoleculeFromString::wrap_results(rv, mol);
 }
 
+MODULE_CTOR(XYZFileToMolecule) {
+    satisfies_property_type<simde::MoleculeFromString>();
+    add_submodule<simde::MoleculeFromString>("XYZ to molecule");
+}
+
+MODULE_RUN(XYZFileToMolecule) {
+    const auto& [xyz_filename] =
+      simde::MoleculeFromString::unwrap_inputs(inputs);
+
+    auto& xyz_parser = submods.at("XYZ to molecule");
+
+    std::ifstream file(xyz_filename);
+    std::stringstream buffer;
+    try {
+        if(file.is_open()) {
+            buffer << file.rdbuf();
+            file.close();
+        } else {
+            throw std::runtime_error("");
+        }
+    } catch(const std::runtime_error& e) {
+        std::cerr << "File not found: " << xyz_filename << std::endl;
+    }
+
+    chemist::Molecule mol =
+      xyz_parser.run_as<simde::MoleculeFromString>(buffer.str());
+
+    auto rv = results();
+    return simde::MoleculeFromString::wrap_results(rv, mol);
+}
 } // namespace nux

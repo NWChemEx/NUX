@@ -66,7 +66,8 @@ TEST_CASE("XYZToMolecule") {
 
         std::string filename = "h2.xyz";
 
-        auto mol = xyz_mod.run_as<simde::MoleculeFromString>(filename);
+        auto& xyz_file_mod = mm.at("XYZ File to Molecule");
+        auto mol = xyz_file_mod.run_as<simde::MoleculeFromString>(filename);
 
         remove("h2.xyz");
         std::ifstream del_file("h2.xyz");
