@@ -18,7 +18,6 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <vector>
 
 namespace nux {
 
@@ -29,45 +28,67 @@ MODULE_CTOR(XYZToMolecule) {
 }
 
 MODULE_RUN(XYZToMolecule) {
-    const auto& [filename] = simde::MoleculeFromString::unwrap_inputs(inputs);
-
-    auto& z_from_sym  = submods.at("Z from symbol");
-    auto& atom_from_z = submods.at("Atom from z");
-
-    chemist::Molecule mol;
-
-    std::ifstream xyz_file(filename);
-
-    if(!xyz_file) { throw std::runtime_error("File not found: " + filename); }
+    const auto& [xyz_data] = simde::MoleculeFromString::unwrap_inputs(inputs);
+    auto& z_from_sym       = submods.at("Z from symbol");
+    auto& atom_from_z      = submods.at("Atom from z");
 
     std::string line;
+    chemist::Molecule mol;
 
-    // Skips the 1st line of the file, associated with the number of
-    // atoms in the file, and the 2nd line, the comment line.
-    std::getline(xyz_file, line);
-    std::getline(xyz_file, line);
-
-    while(std::getline(xyz_file, line)) {
-        std::istringstream iss(line);
-        std::vector<std::string> tokens;
-        std::string token;
-        while(std::getline(iss, token, ' ')) {
-            if(token.size()) { tokens.emplace_back(token); }
+    std::ifstream file(xyz_data);
+    std::stringstream buffer;
+    if(file.is_open()) {
+        buffer << file.rdbuf();
+        file.close();
+    } else {
+        buffer << xyz_data;
+        if(buffer.str().empty()) {
+            throw std::runtime_error(
+              "File or XYZ data not valid, empty string");
         }
-        auto Z = z_from_sym.run_as<simde::ZFromSymbol>(tokens.at(0));
-        auto x = std::stod(tokens.at(1));
-        auto y = std::stod(tokens.at(2));
-        auto z = std::stod(tokens.at(3));
-
-        auto atm = atom_from_z.run_as<simde::AtomFromZ>(Z);
-        atm.x()  = x;
-        atm.y()  = y;
-        atm.z()  = z;
-        mol.push_back(atm);
     }
 
-    xyz_file.close();
+    int i = 0;
 
+    while(std::getline(buffer, line)) {
+        i++;
+        int num_atoms;
+        if(i == 1) {
+            try {
+                num_atoms = std::stoi(line);
+            } catch(const std::invalid_argument& e) {
+                throw std::runtime_error("Formatting of XYZ data incorrect");
+            }
+            continue;
+        }
+        if(i == 2) { continue; }
+        std::istringstream iss(line);
+        std::string atom_string;
+        double x, y, z;
+        if(!(iss >> atom_string >> x >> y >> z)) {
+            throw std::runtime_error("This is not a good coordinate");
+        }
+
+        auto Z    = z_from_sym.run_as<simde::ZFromSymbol>(atom_string);
+        auto atom = atom_from_z.run_as<simde::AtomFromZ>(Z);
+        atom.x()  = x;
+        atom.y()  = y;
+        atom.z()  = z;
+
+        mol.push_back(atom);
+
+        if(!(buffer.peek() == EOF)) {
+            continue;
+        } else {
+            if(mol.size() == num_atoms) {
+                continue;
+            } else {
+                throw std::runtime_error("Incorrect format for XYZ file: "
+                                         "Number of atoms and number of atom "
+                                         "coordinates do not match");
+            }
+        }
+    }
     auto rv = results();
     return simde::MoleculeFromString::wrap_results(rv, mol);
 }

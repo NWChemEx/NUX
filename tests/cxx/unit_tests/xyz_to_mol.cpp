@@ -36,13 +36,19 @@ TEST_CASE("XYZToMolecule") {
     xyz_mod.change_submod("Z from symbol", z_mod);
     xyz_mod.change_submod("Atom from z", atom_mod);
 
-    SECTION("No XYZ file found") {
+    SECTION("XYZ File Non-existent") {
         std::string file = "file.xyz";
         REQUIRE_THROWS_AS(xyz_mod.run_as<simde::MoleculeFromString>(file),
                           std::runtime_error);
     }
 
-    SECTION("Full XYZ To Molecule run") {
+    SECTION("XYZ Data Incorrect") {
+        std::string data = "2\nComment\nH 0 0 0";
+        REQUIRE_THROWS_AS(xyz_mod.run_as<simde::MoleculeFromString>(data),
+                          std::runtime_error);
+    }
+
+    SECTION("Full XYZ To Molecule run: File") {
         auto atom0{make_atoms(1)};
         auto atom1{make_atoms(1)};
         atom1.z() = 1;
@@ -67,5 +73,23 @@ TEST_CASE("XYZToMolecule") {
 
         REQUIRE(mol == test_mol);
         REQUIRE(del_file.good() == false);
+    }
+
+    SECTION("Full XYZ To Molecule run: Data") {
+        auto atom0{make_atoms(1)};
+        auto atom1{make_atoms(1)};
+        atom1.z() = 1;
+
+        simde::type::molecule test_mol{atom0, atom1};
+
+        std::stringstream xyz_data;
+        xyz_data << "2\n";
+        xyz_data << "This is a comment!\n";
+        xyz_data << "H 0 0 0\n";
+        xyz_data << "H 0 0 1\n";
+
+        auto mol = xyz_mod.run_as<simde::MoleculeFromString>(xyz_data.str());
+
+        REQUIRE(mol == test_mol);
     }
 }
