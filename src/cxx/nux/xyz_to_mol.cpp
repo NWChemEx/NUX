@@ -41,13 +41,18 @@ MODULE_RUN(XYZToMolecule) {
         throw std::runtime_error("File or XYZ data not valid, empty string");
     }
 
-    int num_atoms;
+    long unsigned int num_atoms;
     int i = 0;
 
     while(std::getline(buffer, line)) {
         i++;
         if(i == 1) {
-            num_atoms = std::stoi(line);
+            int num = std::stoi(line);
+            if(num < 0) {
+                throw std::out_of_range("Negative number for atom count: " +
+                                        line);
+            }
+            num_atoms = static_cast<long unsigned int>(num);
             continue;
         }
         if(i == 2) { continue; }
