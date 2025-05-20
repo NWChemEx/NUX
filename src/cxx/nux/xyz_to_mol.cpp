@@ -15,7 +15,6 @@
  */
 
 #include "nux_modules.hpp"
-#include <fstream>
 #include <sstream>
 #include <string>
 
@@ -42,17 +41,13 @@ MODULE_RUN(XYZToMolecule) {
         throw std::runtime_error("File or XYZ data not valid, empty string");
     }
 
+    int num_atoms;
     int i = 0;
 
     while(std::getline(buffer, line)) {
         i++;
-        int num_atoms;
         if(i == 1) {
-            try {
-                num_atoms = std::stoi(line);
-            } catch(const std::invalid_argument& e) {
-                throw std::runtime_error("Formatting of XYZ data incorrect");
-            }
+            num_atoms = std::stoi(line);
             continue;
         }
         if(i == 2) { continue; }
@@ -60,7 +55,8 @@ MODULE_RUN(XYZToMolecule) {
         std::string atom_string;
         double x, y, z;
         if(!(iss >> atom_string >> x >> y >> z)) {
-            throw std::runtime_error("This is not a good coordinate");
+            throw std::runtime_error("Incorrect XYZ Coordinate format: " +
+                                     line);
         }
 
         auto Z    = z_from_sym.run_as<simde::ZFromSymbol>(atom_string);
@@ -70,50 +66,12 @@ MODULE_RUN(XYZToMolecule) {
         atom.z()  = z;
 
         mol.push_back(atom);
-
-        if(!(buffer.peek() == EOF)) {
-            continue;
-        } else {
-            if(mol.size() == num_atoms) {
-                continue;
-            } else {
-                throw std::runtime_error("Incorrect format for XYZ file: "
-                                         "Number of atoms and number of atom "
-                                         "coordinates do not match");
-            }
-        }
     }
-    auto rv = results();
-    return simde::MoleculeFromString::wrap_results(rv, mol);
-}
-
-MODULE_CTOR(XYZFileToMolecule) {
-    satisfies_property_type<simde::MoleculeFromString>();
-    add_submodule<simde::MoleculeFromString>("XYZ to molecule");
-}
-
-MODULE_RUN(XYZFileToMolecule) {
-    const auto& [xyz_filename] =
-      simde::MoleculeFromString::unwrap_inputs(inputs);
-
-    auto& xyz_parser = submods.at("XYZ to molecule");
-
-    std::ifstream file(xyz_filename);
-    std::stringstream buffer;
-    try {
-        if(file.is_open()) {
-            buffer << file.rdbuf();
-            file.close();
-        } else {
-            throw std::runtime_error("");
-        }
-    } catch(const std::runtime_error& e) {
-        std::cerr << "File not found: " << xyz_filename << std::endl;
+    if(!(mol.size() == num_atoms)) {
+        throw std::runtime_error("Incorrect format for XYZ file: "
+                                 "Number of atoms and number of atom "
+                                 "coordinates do not match");
     }
-
-    chemist::Molecule mol =
-      xyz_parser.run_as<simde::MoleculeFromString>(buffer.str());
-
     auto rv = results();
     return simde::MoleculeFromString::wrap_results(rv, mol);
 }
