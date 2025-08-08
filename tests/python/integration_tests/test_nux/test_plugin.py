@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pluginplay import ModuleManager
-import nux
 import unittest
+
+import nux
+from pluginplay import ModuleManager
 
 
 class TestLoadModules(unittest.TestCase):
-
     def test_load_modules(self):
         self.assertGreater(self.mm.size(), 0)
 

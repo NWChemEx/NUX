@@ -27,7 +27,7 @@ const auto desc = R"(
 Born-Oppenheimer Hamiltonian Driver
 -----------------------------------
 
-This module defines the algorithm used throughout NWChemEx to convert a 
+This module defines the algorithm used throughout NWChemEx to convert a
 ChemicalSystem object into a Hamiltonian object using the Born-Oppenheimer
 approximation.
 
