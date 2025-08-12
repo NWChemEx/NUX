@@ -58,7 +58,7 @@ nwx_add_pybind11_module(
     DEPENDS "${PROJECT_NAME}"
 )
 
-if("${BUILD_TESTING}") 
+if("${BUILD_TESTING}")
     include(CTest)
     set(PYTHON_TEST_DIR "${NUX_TESTS_DIR}/python")
     set(CXX_TEST_DIR "${NUX_TESTS_DIR}/cxx")
@@ -81,7 +81,7 @@ if("${BUILD_TESTING}")
         nwx_pybind11_tests(
             py_integration_test_${PROJECT_NAME}
             "${PYTHON_TEST_DIR}/integration_tests/run_integration_tests.py"
-            SUBMODULES nwchemex nux chemcache simde chemist pluginplay 
+            SUBMODULES nwchemex nux chemcache simde chemist pluginplay
                        parallelzone scf friendzone
         )
     endif()

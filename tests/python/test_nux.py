@@ -16,7 +16,7 @@ import chemist
 
 
 def h_nucleus(x, y, z):
-    return chemist.Nucleus('H', 1, 1836.15, x, y, z)
+    return chemist.Nucleus("H", 1, 1836.15, x, y, z)
 
 
 def h2_nuclei():
