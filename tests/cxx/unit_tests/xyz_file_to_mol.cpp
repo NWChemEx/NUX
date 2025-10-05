@@ -47,7 +47,7 @@ TEST_CASE("XYZFileToMolecule") {
     SECTION("Full XYZ To Molecule run: File") {
         auto atom0{make_atoms(1)};
         auto atom1{make_atoms(1)};
-        atom1.z() = 1;
+        atom1.z() = 1.8897259886;
 
         simde::type::molecule test_mol{atom0, atom1};
 
