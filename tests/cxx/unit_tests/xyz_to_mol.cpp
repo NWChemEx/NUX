@@ -69,6 +69,8 @@ TEST_CASE("XYZToMolecule") {
     SECTION("XYZ to Molecule Unit Scaling: Angstroms to Bohr") {
         auto atom0{make_atoms(1)};
         auto atom1{make_atoms(1)};
+        atom1.x() = 1.8897259886;
+        atom1.y() = 1.8897259886;
         atom1.z() = 1.8897259886;
 
         simde::type::molecule test_mol{atom0, atom1};
@@ -77,7 +79,7 @@ TEST_CASE("XYZToMolecule") {
         xyz_data << "2\n";
         xyz_data << "This is a comment!\n";
         xyz_data << "H 0 0 0\n";
-        xyz_data << "H 0 0 1\n";
+        xyz_data << "H 1 1 1\n";
 
         xyz_mod.change_input("Unit scaling factor", 1.8897259886);
 
