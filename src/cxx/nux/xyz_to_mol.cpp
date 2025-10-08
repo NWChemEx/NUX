@@ -20,20 +20,20 @@
 
 namespace nux {
 
-double ang2bohr(double ang_value) {
-    // Converts a anstrom-based value to a bohr-based value
-    double bohr_value = ang_value * 1.8897259886;
-    return bohr_value;
-}
-
 MODULE_CTOR(XYZToMolecule) {
     satisfies_property_type<simde::MoleculeFromString>();
     add_submodule<simde::ZFromSymbol>("Z from symbol");
     add_submodule<simde::AtomFromZ>("Atom from z");
+    add_input<double>("Unit scaling factor")
+      .set_default(1.0)
+      .set_description(
+        "Sets the unit scaling factor, default 1.0 for bohr input units")
+      .set_default(1.0);
 }
 
 MODULE_RUN(XYZToMolecule) {
     const auto& [xyz_data] = simde::MoleculeFromString::unwrap_inputs(inputs);
+    auto unit_scale        = inputs.at("Unit scaling factor").value<double>();
     auto& z_from_sym       = submods.at("Z from symbol");
     auto& atom_from_z      = submods.at("Atom from z");
 
@@ -74,9 +74,9 @@ MODULE_RUN(XYZToMolecule) {
         auto atom = atom_from_z.run_as<simde::AtomFromZ>(Z);
 
         // Assumes that the XYZ coordnates given are in angstroms
-        atom.x() = ang2bohr(x);
-        atom.y() = ang2bohr(y);
-        atom.z() = ang2bohr(z);
+        atom.x() = x * unit_scale;
+        atom.y() = y * unit_scale;
+        atom.z() = z * unit_scale;
 
         mol.push_back(atom);
     }

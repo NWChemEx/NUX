@@ -51,6 +51,24 @@ TEST_CASE("XYZToMolecule") {
     SECTION("Full XYZ To Molecule run: Data") {
         auto atom0{make_atoms(1)};
         auto atom1{make_atoms(1)};
+        atom1.z() = 1;
+
+        simde::type::molecule test_mol{atom0, atom1};
+
+        std::stringstream xyz_data;
+        xyz_data << "2\n";
+        xyz_data << "This is a comment!\n";
+        xyz_data << "H 0 0 0\n";
+        xyz_data << "H 0 0 1\n";
+
+        auto mol = xyz_mod.run_as<simde::MoleculeFromString>(xyz_data.str());
+
+        REQUIRE(mol == test_mol);
+    }
+
+    SECTION("XYZ to Molecule Unit Scaling: Angstroms to Bohr") {
+        auto atom0{make_atoms(1)};
+        auto atom1{make_atoms(1)};
         atom1.z() = 1.8897259886;
 
         simde::type::molecule test_mol{atom0, atom1};
@@ -60,6 +78,8 @@ TEST_CASE("XYZToMolecule") {
         xyz_data << "This is a comment!\n";
         xyz_data << "H 0 0 0\n";
         xyz_data << "H 0 0 1\n";
+
+        xyz_mod.change_input("Unit scaling factor", 1.8897259886);
 
         auto mol = xyz_mod.run_as<simde::MoleculeFromString>(xyz_data.str());
 
