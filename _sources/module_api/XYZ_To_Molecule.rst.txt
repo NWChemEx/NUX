@@ -40,11 +40,13 @@ module. The columns are:
 - ``Default`` : The initial value, if one exists, and
 - ``Description`` : A human readable description of what the option is used for.
 
-+--------+---------+---------------------------------------------+
-| Key    | Default | Description                                 |
-+========+=========+=============================================+
-| String | N/A     | The string identifying the desired molecule |
-+--------+---------+---------------------------------------------+
++---------------------+---------+----------------------------------------------------------------+
+| Key                 | Default | Description                                                    |
++=====================+=========+================================================================+
+| String              | N/A     | The string identifying the desired molecule                    |
++---------------------+---------+----------------------------------------------------------------+
+| Unit scaling factor | 1       | Sets the unit scaling factor, default 1.0 for bohr input units |
++---------------------+---------+----------------------------------------------------------------+
 
 
 Detailed Descriptions
@@ -70,6 +72,17 @@ String
 - Domain Restrictions :
 
   - Type == std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>
+
+Unit scaling factor
+-------------------
+
+- Description : Sets the unit scaling factor, default 1.0 for bohr input units
+- Default Value : 1
+- Optional? : False
+- Opaque? : True
+- Domain Restrictions :
+
+  - Type == double
 
 
 **************
