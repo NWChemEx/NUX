@@ -24,10 +24,16 @@ MODULE_CTOR(XYZToMolecule) {
     satisfies_property_type<simde::MoleculeFromString>();
     add_submodule<simde::ZFromSymbol>("Z from symbol");
     add_submodule<simde::AtomFromZ>("Atom from z");
+    add_input<double>("Unit scaling factor")
+      .set_default(1.0)
+      .set_description(
+        "Sets the unit scaling factor, default 1.0 for bohr input units")
+      .set_default(1.0);
 }
 
 MODULE_RUN(XYZToMolecule) {
     const auto& [xyz_data] = simde::MoleculeFromString::unwrap_inputs(inputs);
+    auto unit_scale        = inputs.at("Unit scaling factor").value<double>();
     auto& z_from_sym       = submods.at("Z from symbol");
     auto& atom_from_z      = submods.at("Atom from z");
 
@@ -66,9 +72,11 @@ MODULE_RUN(XYZToMolecule) {
 
         auto Z    = z_from_sym.run_as<simde::ZFromSymbol>(atom_string);
         auto atom = atom_from_z.run_as<simde::AtomFromZ>(Z);
-        atom.x()  = x;
-        atom.y()  = y;
-        atom.z()  = z;
+
+        // Assumes that the XYZ coordnates given are in angstroms
+        atom.x() = x * unit_scale;
+        atom.y() = y * unit_scale;
+        atom.z() = z * unit_scale;
 
         mol.push_back(atom);
     }
