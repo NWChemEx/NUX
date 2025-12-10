@@ -15,4 +15,7 @@
 -->
 
 # NUX (NWChemEx User Experience)
+
+[![Nightly Workflow](https://github.com/NWChemEx/NUX/actions/workflows/nightly.yaml/badge.svg)](https://github.com/NWChemEx/NUX/actions/workflows/nightly.yaml)
+
 Modules, tools, functions, etc. to facilitate a smoother user experience.
