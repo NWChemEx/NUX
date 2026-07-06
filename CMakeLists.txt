@@ -1,4 +1,4 @@
-# Copyright 2024 NWChemEx-Project
+# Copyright 2026 NWChemEx-Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,78 +14,51 @@
 
 cmake_minimum_required(VERSION 3.14)
 
-# Downloads common CMake modules used throughout NWChemEx
-
-#Sets the version to whatever git thinks it is
-#include(get_version_from_git)
-#get_version_from_git(scf_version "${CMAKE_CURRENT_LIST_DIR}")
-project(nux VERSION "1.0.0" LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 20)
+# Downloads common CMake modules used throughout NWChemEx. Included before
+# project() so nwx_set_version() is available to compute the version.
 include(cmake/get_nwx_cmake.cmake)
 
-include(get_cmaize)
+# Version from scikit-build-core (wheels/sdists) or the latest git tag.
+include(nwx_set_version)
+nwx_set_version(nux_version "${CMAKE_CURRENT_LIST_DIR}")
+project(nux VERSION "${nux_version}" LANGUAGES CXX)
+
+include(disable_in_source_builds)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
+option(BUILD_TESTING           "Whether to build the unit tests"    OFF)
+option(BUILD_PYBIND11_BINDINGS "Build Python bindings via pybind11" ON)
+
+# Documentation target (no-op unless BUILD_DOCS is on)
 include(nwx_cxx_api_docs)
+nwx_cxx_api_docs("cxx/include" "cxx/src")
 
-set(NUX_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
-set(NUX_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
-set(NUX_TESTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tests")
+### Dependencies ###
+include(get_dependencies)
+get_dependencies(simde)
 
-nwx_cxx_api_docs("${NUX_SOURCE_DIR}" "${NUX_INCLUDE_DIR}")
+### Library ###
+include(nwx_library)
+nwx_library(${PROJECT_NAME} "cxx/include" "cxx/src" simde)
 
-### Options ###
-cmaize_option_list(
-    BUILD_TESTING OFF "Should we build the tests?"
-    BUILD_PYBIND11_PYBINDINGS ON "Build Python bindings with pybind11?"
-    INTEGRATION_TESTING OFF "Should we build the integration tests?"
-)
+### Python bindings (no-op unless BUILD_PYBIND11_BINDINGS is on) ###
+include(nwx_python_module)
+nwx_python_module(${PROJECT_NAME} "cxx/src")
 
-set(DEPENDENCIES simde)
-
-foreach(dependency_i ${DEPENDENCIES})
-    include(get_${dependency_i})
-endforeach()
-
-cmaize_add_library(
-    ${PROJECT_NAME}
-    SOURCE_DIR "${NUX_SOURCE_DIR}/cxx/nux"
-    INCLUDE_DIRS "${NUX_INCLUDE_DIR}/nux"
-    DEPENDS "${DEPENDENCIES}"
-)
-
-include(nwx_pybind11)
-nwx_add_pybind11_module(
-    ${PROJECT_NAME}
-    SOURCE_DIR "${NUX_SOURCE_DIR}/python"
-    DEPENDS "${PROJECT_NAME}"
-)
-
-if("${BUILD_TESTING}")
-    include(CTest)
-    set(PYTHON_TEST_DIR "${NUX_TESTS_DIR}/python")
-    set(CXX_TEST_DIR "${NUX_TESTS_DIR}/cxx")
-
-    include(get_catch2)
-    cmaize_add_tests(
-        unit_test_${PROJECT_NAME}
-        SOURCE_DIR "${CXX_TEST_DIR}/unit_tests"
-        INCLUDE_DIRS "${NUX_SOURCE_DIR}/cxx/nux"
-        DEPENDS Catch2 ${PROJECT_NAME}
+### Tests ###
+if(BUILD_TESTING)
+    include(catch2_tests_from_dir)
+    catch2_tests_from_dir(
+        "test_unit_${PROJECT_NAME}"
+        "tests/cxx/unit_tests"
+        ${PROJECT_NAME}
+        PRIVATE_INCLUDES "cxx/src"
     )
-    nwx_pybind11_tests(
+
+    include(nwx_python_test)
+    nwx_python_test(
         py_unit_test_${PROJECT_NAME}
-        "${PYTHON_TEST_DIR}/unit_tests/run_unit_tests.py"
-        SUBMODULES nux simde chemist pluginplay parallelzone
+        "${CMAKE_CURRENT_LIST_DIR}/tests/python/unit_tests/run_unit_tests.py"
     )
-
-    if("${INTEGRATION_TESTING}")
-        include(get_nwchemex)
-        nwx_pybind11_tests(
-            py_integration_test_${PROJECT_NAME}
-            "${PYTHON_TEST_DIR}/integration_tests/run_integration_tests.py"
-            SUBMODULES nwchemex nux chemcache simde chemist pluginplay
-                       parallelzone scf friendzone
-        )
-    endif()
 endif()
-
-cmaize_add_package(${PROJECT_NAME} NAMESPACE nwx::)
