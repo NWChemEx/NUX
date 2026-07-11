@@ -43,6 +43,14 @@ build-dir = "build"
 [tool.setuptools_scm]
 fallback_version = "0.0.0"
 
+# tests/python/unit_tests/test_nux/ and .../integration_tests/test_nux/ share
+# the same basename with no unique package root above them, so pytest's
+# default (prepend) import mode collides on the dotted module name
+# "test_nux.test_plugin" for both. importlib mode identifies modules by
+# file path instead, sidestepping the collision without renaming anything.
+[tool.pytest.ini_options]
+addopts = ["--import-mode=importlib"]
+
 # For editable (developer) installs, also build the tests.
 [[tool.scikit-build.overrides]]
 if.state = "editable"
