@@ -56,3 +56,10 @@ nwx_python_test(
     py_unit_test_${PROJECT_NAME}
     "${CMAKE_CURRENT_LIST_DIR}/tests/python/unit_tests/run_unit_tests.py"
 )
+
+if(INTEGRATION_TESTING)
+    nwx_python_test(
+        py_integration_test_${PROJECT_NAME}
+        "${CMAKE_CURRENT_LIST_DIR}/tests/python/integration_tests/run_integration_tests.py"
+    )
+endif()
