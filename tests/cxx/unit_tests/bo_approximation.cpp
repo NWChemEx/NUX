@@ -21,7 +21,7 @@ using namespace nux;
 
 TEST_CASE("BOApproximation") {
     pluginplay::ModuleManager mm;
-    load_modules(mm);
+    mm.load_plugin<NUX>();
 
     using simde::type::chemical_system;
     using simde::type::hamiltonian;

@@ -17,8 +17,64 @@
 #include "../test_nux.hpp"
 #include <nux/nux.hpp>
 
-TEST_CASE("load_plugin") {
+namespace {
+
+// Stands in for ChemCache, which NUX gets atomic data from
+class FakeChemCache : public pluginplay::Plugin {
+public:
+    FakeChemCache() {
+        set_name("chemcache");
+        auto z_from_sym = pluginplay::make_lambda<simde::ZFromSymbol>(
+          [](auto&&) { return simde::type::atomic_number{1}; });
+        auto atom_from_z =
+          pluginplay::make_lambda<simde::AtomFromZ>([](auto&&) {
+              return simde::type::atom{"H", 1ul, 1836.15, 0.0, 0.0, 0.0};
+          });
+        modules().add_module("Z from Symbol", z_from_sym);
+        modules().add_module("Atom", atom_from_z);
+    }
+};
+
+} // namespace
+
+TEST_CASE("NUX plugin") {
+    nux::NUX plugin;
+    const auto& modules = plugin.get_modules();
+
+    SECTION("Identity") {
+        REQUIRE(plugin.name() == "nux");
+        using provider_list = nux::NUX::provider_list_type;
+        REQUIRE(plugin.preferred_providers() == provider_list{"chemcache"});
+    }
+
+    SECTION("Modules") {
+        REQUIRE(modules.size() > 1);
+        REQUIRE(modules.count("Born-Oppenheimer Approximation"));
+        REQUIRE(modules.count("XYZ To Molecule"));
+        REQUIRE(modules.count("XYZ File to Molecule"));
+    }
+
+    SECTION("Defaults set within the plugin") {
+        REQUIRE(modules.has_submod("XYZ File to Molecule", "XYZ to molecule"));
+    }
+
     pluginplay::ModuleManager mm;
-    nux::load_modules(mm);
-    REQUIRE(mm.size() > 0);
+    mm.load_plugin<nux::NUX>();
+    const auto& xyz_submods = mm.at("XYZ To Molecule").submods();
+
+    SECTION("Can be loaded on its own") {
+        REQUIRE(mm.has_plugin("nux"));
+        REQUIRE(mm.size() == modules.size());
+        mm.wire_defaults();
+        REQUIRE_FALSE(xyz_submods.at("Z from symbol").has_module());
+        REQUIRE_FALSE(xyz_submods.at("Atom from z").has_module());
+    }
+
+    SECTION("Gets atomic data from ChemCache") {
+        mm.load_plugin<FakeChemCache>();
+        mm.wire_defaults();
+        REQUIRE(xyz_submods.at("Z from symbol").value() ==
+                mm.at("Z from Symbol"));
+        REQUIRE(xyz_submods.at("Atom from z").value() == mm.at("Atom"));
+    }
 }

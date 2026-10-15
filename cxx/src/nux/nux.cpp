@@ -19,12 +19,20 @@
 
 namespace nux {
 
-void load_modules(pluginplay::ModuleManager& mm) {
-    mm.add_module<BOApproximation>("Born-Oppenheimer Approximation");
-    mm.add_module<XYZToMolecule>("XYZ To Molecule");
-    mm.add_module<XYZFileToMolecule>("XYZ File to Molecule");
+PLUGIN_CTOR(NUX) {
+    set_name("nux");
 
-    set_defaults(mm);
+    add_module<BOApproximation>("Born-Oppenheimer Approximation");
+    add_module<XYZToMolecule>("XYZ To Molecule");
+    add_module<XYZFileToMolecule>("XYZ File to Molecule");
+
+    set_defaults(modules());
+
+    // Atomic data comes from ChemCache, if it is loaded
+    set_preferred_providers("chemcache");
+    default_submod_from("chemcache", "XYZ To Molecule", "Z from symbol",
+                        "Z from Symbol");
+    default_submod_from("chemcache", "XYZ To Molecule", "Atom from z", "Atom");
 }
 
 } // namespace nux
