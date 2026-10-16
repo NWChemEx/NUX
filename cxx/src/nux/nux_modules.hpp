@@ -23,8 +23,8 @@ DECLARE_MODULE(BOApproximation);
 DECLARE_MODULE(XYZToMolecule);
 DECLARE_MODULE(XYZFileToMolecule);
 
-inline void set_defaults(pluginplay::ModuleManager& mm) {
-    mm.change_submod("XYZ File To Molecule", "XYZ to molecule",
-                     "XYZ To Molecule");
+inline void set_defaults(pluginplay::ModuleMap& modules) {
+    modules.change_submod("XYZ File To Molecule", "XYZ to molecule",
+                          "XYZ To Molecule");
 }
 } // namespace nux

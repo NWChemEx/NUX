@@ -18,9 +18,13 @@
 #include <pluginplay/pluginplay.hpp>
 
 namespace nux {
-/** @brief Loads the modules contained in the NUX module collection into the
- *         provided ModuleManager instance.
+/** @brief The NUX plugin.
+ *
+ *  Load it into a ModuleManager with `mm.load_plugin<nux::NUX>()`
+ *  (`mm.load_plugin(nux.NUX())` from Python). The plugin's name is "nux". If
+ *  the ChemCache plugin is also loaded, ModuleManager::wire_defaults uses its
+ *  modules for the atomic data needed by "XYZ To Molecule".
  */
-void load_modules(pluginplay::ModuleManager& mm);
+DECLARE_PLUGIN(NUX);
 
 } // namespace nux

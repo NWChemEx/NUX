@@ -20,7 +20,7 @@
 
 TEST_CASE("XYZFileToMolecule") {
     pluginplay::ModuleManager mm;
-    nux::load_modules(mm);
+    mm.load_plugin<nux::NUX>();
 
     auto make_atoms = [=](auto&& Z) {
         REQUIRE(Z == 1);

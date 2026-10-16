@@ -20,6 +20,6 @@
 
 namespace nux {
 
-EXPORT_PLUGIN(nux, m) {}
+EXPORT_PLUGIN(nux, NUX, m) {}
 
 } // namespace nux

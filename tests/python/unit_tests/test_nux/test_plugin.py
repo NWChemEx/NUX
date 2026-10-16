@@ -18,10 +18,13 @@ import nux
 from pluginplay import ModuleManager
 
 
-class TestLoadModules(unittest.TestCase):
-    def test_load_modules(self):
-        self.assertGreater(self.mm.size(), 0)
+class TestNUXPlugin(unittest.TestCase):
+    def test_load_plugin(self):
+        self.assertTrue(self.mm.has_plugin("nux"))
+        self.assertTrue(self.mm.count("XYZ To Molecule"))
+        plugin = self.mm.get_plugin("nux")
+        self.assertEqual(plugin.preferred_providers(), ["chemcache"])
 
     def setUp(self):
         self.mm = ModuleManager()
-        nux.load_modules(self.mm)
+        self.mm.load_plugin(nux.NUX())
