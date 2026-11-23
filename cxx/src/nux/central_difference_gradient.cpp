@@ -18,13 +18,15 @@
 #include <map>
 #include <simde/derivative/derivative.hpp>
 #include <stdexcept>
+#include <tensorwrapper/operations/stack.hpp>
 #include <vector>
 
 namespace nux {
 namespace {
 
-using pt        = simde::EnergyNuclearGradientStdVectorD;
+using pt        = simde::EnergyNuclearGradientTensor;
 using energy_pt = simde::TotalEnergy;
+using tensor_t  = simde::type::tensor;
 
 /// Central-difference coefficients c_k, k = 1, ..., order / 2, keyed by order
 const std::map<std::size_t, std::vector<double>> coefficients{
@@ -32,13 +34,6 @@ const std::map<std::size_t, std::vector<double>> coefficients{
   {4, {2.0 / 3.0, -1.0 / 12.0}},
   {6, {3.0 / 4.0, -3.0 / 20.0, 1.0 / 60.0}},
   {8, {4.0 / 5.0, -1.0 / 5.0, 4.0 / 105.0, -1.0 / 280.0}}};
-
-/// Unwraps the scalar energy stored in the rank 0 tensor @p e
-double to_double(const simde::type::tensor& e) {
-    using tensorwrapper::buffer::make_contiguous;
-    return wtf::fp::float_cast<double>(
-      make_contiguous(e.buffer()).get_elem({}));
-}
 
 const auto desc = R"(
 Central Difference Nuclear Gradient
@@ -69,9 +64,12 @@ orders and their coefficients are:
 Computing the gradient of an :math:`N` atom system requires :math:`3Np`
 energy evaluations.
 
-The gradient is returned in atom-major order, i.e., x, y, z of atom 0 followed
-by x, y, z of atom 1, etc. Derivatives are taken at the points in the PointSet
-input, which must exactly match the nuclear coordinates of the chemical system.
+The gradient is returned as an :math:`N` by 3 tensor (row :math:`i` holds the
+x, y, and z components for atom :math:`i`). The arithmetic is done in the
+floating-point type of the energies (which must all be the same), so if the
+energies carry uncertainty (e.g., UQ types) the gradient does too.
+Derivatives are taken at the points in the PointSet input, which must exactly
+match the nuclear coordinates of the chemical system.
 )";
 
 } // namespace
@@ -106,6 +104,8 @@ MODULE_RUN(CentralDifferenceGradient) {
     // Step 0: Derivatives are only meaningful at the system's geometry
     const auto nuclei   = sys.molecule().nuclei();
     const auto n_nuclei = nuclei.size();
+    if(n_nuclei == 0)
+        throw std::runtime_error("Chemical system must contain nuclei");
     const std::string error_msg =
       "Derivative must be computed at the chemical system's geometry";
     if(points.size() != n_nuclei) throw std::runtime_error(error_msg);
@@ -114,28 +114,43 @@ MODULE_RUN(CentralDifferenceGradient) {
             if(points.at(atom).coord(q) != nuclei.at(atom).coord(q))
                 throw std::runtime_error(error_msg);
 
-    // Step 1: Energy of sys with nuclear coordinate q of atom displaced by dx
-    auto& energy_mod      = submods.at("Energy");
-    auto displaced_energy = [&](std::size_t atom, std::size_t q, double dx) {
+    // Step 1: Energy of sys with coordinate q of atom displaced by dx
+    auto& energy_mod = submods.at("Energy");
+    auto energy      = [&](std::size_t atom, std::size_t q, double dx) {
         auto displaced = sys;
         displaced.molecule().at(atom).coord(q) += dx;
-        return to_double(energy_mod.run_as<energy_pt>(displaced));
+        return energy_mod.run_as<energy_pt>(displaced);
     };
 
-    // Step 2: Central differences for each coordinate (atom-major order)
+    // Step 2: Each component is a rank 0 tensor. Tensor operations keep the
+    // energies' floating-point type, so UQ types propagate into the gradient.
     const auto& c = coefficients.at(order);
-    std::vector<double> grad(3 * n_nuclei, 0.0);
+    std::vector<tensor_t> atom_grads;
     for(std::size_t atom = 0; atom < n_nuclei; ++atom) {
+        std::vector<tensor_t> components;
         for(std::size_t q = 0; q < 3; ++q) {
-            double g = 0.0;
+            tensor_t g;
             for(std::size_t k = 1; k <= c.size(); ++k) {
-                const auto dx = static_cast<double>(k) * h;
-                g += c[k - 1] * (displaced_energy(atom, q, dx) -
-                                 displaced_energy(atom, q, -dx));
+                const auto dx      = static_cast<double>(k) * h;
+                const auto e_plus  = energy(atom, q, dx);
+                const auto e_minus = energy(atom, q, -dx);
+                tensor_t term;
+                term("") = (e_plus("") - e_minus("")) * (c[k - 1] / h);
+                if(k == 1) {
+                    g = std::move(term);
+                } else {
+                    tensor_t sum;
+                    sum("") = g("") + term("");
+                    g       = std::move(sum);
+                }
             }
-            grad[3 * atom + q] = g / h;
+            components.push_back(std::move(g));
         }
+        atom_grads.push_back(tensorwrapper::operations::stack(components));
     }
+
+    // Step 3: Stack the per-atom vectors into the N by 3 gradient
+    auto grad = tensorwrapper::operations::stack(atom_grads);
 
     auto rv = results();
     return pt::wrap_results(rv, grad);
