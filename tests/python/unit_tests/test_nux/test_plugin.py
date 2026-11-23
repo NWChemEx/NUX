@@ -22,6 +22,7 @@ class TestNUXPlugin(unittest.TestCase):
     def test_load_plugin(self):
         self.assertTrue(self.mm.has_plugin("nux"))
         self.assertTrue(self.mm.count("XYZ To Molecule"))
+        self.assertTrue(self.mm.count("Central Difference Gradient"))
         plugin = self.mm.get_plugin("nux")
         self.assertEqual(plugin.preferred_providers(), ["chemcache"])
 

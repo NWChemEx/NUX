@@ -50,6 +50,7 @@ TEST_CASE("NUX plugin") {
     SECTION("Modules") {
         REQUIRE(modules.size() > 1);
         REQUIRE(modules.count("Born-Oppenheimer Approximation"));
+        REQUIRE(modules.count("Central Difference Gradient"));
         REQUIRE(modules.count("XYZ To Molecule"));
         REQUIRE(modules.count("XYZ File to Molecule"));
     }

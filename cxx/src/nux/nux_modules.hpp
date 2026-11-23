@@ -20,6 +20,7 @@
 namespace nux {
 
 DECLARE_MODULE(BOApproximation);
+DECLARE_MODULE(CentralDifferenceGradient);
 DECLARE_MODULE(XYZToMolecule);
 DECLARE_MODULE(XYZFileToMolecule);
 
