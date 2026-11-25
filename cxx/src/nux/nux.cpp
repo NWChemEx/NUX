@@ -23,6 +23,7 @@ PLUGIN_CTOR(NUX) {
     set_name("nux");
 
     add_module<BOApproximation>("Born-Oppenheimer Approximation");
+    add_module<CentralDifferenceGradient>("Central Difference Gradient");
     add_module<XYZToMolecule>("XYZ To Molecule");
     add_module<XYZFileToMolecule>("XYZ File to Molecule");
 
